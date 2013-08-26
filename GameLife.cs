@@ -6,7 +6,7 @@ namespace SFML
 	public class GameLife
 		//: CSharpHelper.Grid<CSharpHelper.DiagonalCell>
 	{
-		private static readonly Dictionary<LiveState, Color> colors, selectedColors;
+		private static readonly Dictionary<Cell.LiveState, Color> colors, selectedColors;
 		private readonly int _width, _height;
 		private readonly Cell[,] _cells;
 		private bool _running;
@@ -16,20 +16,20 @@ namespace SFML
 
 		static GameLife()
 		{
-			colors = new Dictionary<LiveState, Color>()
+			colors = new Dictionary<Cell.LiveState, Color>()
 				{
-					{LiveState.Emerging, Color.Green},
-					{LiveState.Live, Color.Blue},
-					{LiveState.Dying, new Color(255, 127, 0)},
-					{LiveState.Dead, new Color(200, 200, 200)}
+					{Cell.LiveState.Emerging, Color.Green},
+					{Cell.LiveState.Live, Color.Blue},
+					{Cell.LiveState.Dying, new Color(255, 127, 0)},
+					{Cell.LiveState.Dead, new Color(200, 200, 200)}
 				};
 
-			selectedColors = new Dictionary<LiveState, Color>()
+			selectedColors = new Dictionary<Cell.LiveState, Color>()
 				{
-					{LiveState.Emerging, Color.Cyan},
-					{LiveState.Live, Color.White},
-					{LiveState.Dying, Color.Red},
-					{LiveState.Dead, Color.Black}
+					{Cell.LiveState.Emerging, Color.Cyan},
+					{Cell.LiveState.Live, Color.White},
+					{Cell.LiveState.Dying, Color.Red},
+					{Cell.LiveState.Dead, Color.Black}
 				};
 		}
 
@@ -48,12 +48,12 @@ namespace SFML
 					_cells[i, j] = new Cell(i, j, this);
 		}
 
-		public static Dictionary<LiveState, Color> Colors
+		public static Dictionary<Cell.LiveState, Color> Colors
 		{
 			get { return colors; }
 		}
 
-		public static Dictionary<LiveState, Color> SelectedColors
+		public static Dictionary<Cell.LiveState, Color> SelectedColors
 		{
 			get { return selectedColors; }
 		}
@@ -95,51 +95,58 @@ namespace SFML
 			set { _selectedCell = value; }
 		}
 
-		private IEnumerable<Drawable> Draw()
+		public IEnumerable<Drawable> Draw(int offset)
 		{
-			LiveState[,] newCells = new LiveState[_width, _height];
-
-			for (int i = 0; i < _width; ++i)
+			Cell.LiveState[,] newCells = null;
+			if(_running)
 			{
-				for (int j = 0; j < _height; ++j)
-				{
-					Cell cell = _cells[i, j];
-					int living = Arround(cell);
-					switch (cell.State)
+				newCells = new Cell.LiveState[_width, _height];
+
+				for (int i = 0; i < _width; ++i)
+					for (int j = 0; j < _height; ++j)
 					{
-						case LiveState.Emerging:
-							if (living == 2 || living == 3)
-								newCells[i, j] = LiveState.Live;
-							else
-								newCells[i, j] = LiveState.Dying;
-							break;
-						case LiveState.Live:
-							if (living == 2 || living == 3)
-								newCells[i, j] = cell.State;
-							else
-								newCells[i, j] = LiveState.Dying;
-							break;
-						case LiveState.Dying:
-							if (living == 3)
-								newCells[i, j] = LiveState.Emerging;
-							else
-								newCells[i, j] = LiveState.Dead;
-							break;
-						case LiveState.Dead:
-							if (living == 3)
-								newCells[i, j] = LiveState.Emerging;
-							else
-								newCells[i, j] = cell.State;
-							break;
+						Cell cell = _cells[i, j];
+						int living = Arround(cell);
+						switch (cell.State)
+						{
+							case Cell.LiveState.Emerging:
+								if (living == 2 || living == 3)
+									newCells[i, j] = Cell.LiveState.Live;
+								else
+									newCells[i, j] = Cell.LiveState.Dying;
+								break;
+							case Cell.LiveState.Live:
+								if (living == 2 || living == 3)
+									newCells[i, j] = cell.State;
+								else
+									newCells[i, j] = Cell.LiveState.Dying;
+								break;
+							case Cell.LiveState.Dying:
+								if (living == 3)
+									newCells[i, j] = Cell.LiveState.Emerging;
+								else
+									newCells[i, j] = Cell.LiveState.Dead;
+								break;
+							case Cell.LiveState.Dead:
+								if (living == 3)
+									newCells[i, j] = Cell.LiveState.Emerging;
+								else
+									newCells[i, j] = cell.State;
+								break;
+						}
 					}
-				}
 			}
 
 			for (int x = 0; x < _width; ++x)
 				for (int y = 0; y < _height; ++y)
 				{
-					_cells[x, y].State = newCells[x, y];
-					yield return _cells[x, y].Shape;
+					Cell cell = _cells[x, y];
+
+					cell.Shape.FillColor = (cell == _selectedCell) ? selectedColors[cell.State] : colors[cell.State];
+					if (_running)
+						cell.State = newCells[x, y];
+					cell.Shape.Position = new Window.Vector2f(offset + x * Cell.Width, y * Cell.Height);
+					yield return cell.Shape;
 				}
 			_generation++;
 		}
@@ -148,21 +155,21 @@ namespace SFML
 		{
 			int i = 0;
 
-			if (cell.Up != null && (cell.Up.State == LiveState.Emerging || cell.Up.State == LiveState.Live))
+			if (cell.Up != null && (cell.Up.State == Cell.LiveState.Emerging || cell.Up.State == Cell.LiveState.Live))
 				i++;
-			if (cell.Down != null && (cell.Down.State == LiveState.Emerging || cell.Down.State == LiveState.Live))
+			if (cell.Down != null && (cell.Down.State == Cell.LiveState.Emerging || cell.Down.State == Cell.LiveState.Live))
 				i++;
-			if (cell.Left != null && (cell.Left.State == LiveState.Emerging || cell.Left.State == LiveState.Live))
+			if (cell.Left != null && (cell.Left.State == Cell.LiveState.Emerging || cell.Left.State == Cell.LiveState.Live))
 				i++;
-			if (cell.Right != null && (cell.Right.State == LiveState.Emerging || cell.Right.State == LiveState.Live))
+			if (cell.Right != null && (cell.Right.State == Cell.LiveState.Emerging || cell.Right.State == Cell.LiveState.Live))
 				i++;
-			if (cell.UpLeft != null && (cell.UpLeft.State == LiveState.Emerging || cell.UpLeft.State == LiveState.Live))
+			if (cell.UpLeft != null && (cell.UpLeft.State == Cell.LiveState.Emerging || cell.UpLeft.State == Cell.LiveState.Live))
 				i++;
-			if (cell.UpRight != null && (cell.UpRight.State == LiveState.Emerging || cell.UpRight.State == LiveState.Live))
+			if (cell.UpRight != null && (cell.UpRight.State == Cell.LiveState.Emerging || cell.UpRight.State == Cell.LiveState.Live))
 				i++;
-			if (cell.DownLeft != null && (cell.DownLeft.State == LiveState.Emerging || cell.DownLeft.State == LiveState.Live))
+			if (cell.DownLeft != null && (cell.DownLeft.State == Cell.LiveState.Emerging || cell.DownLeft.State == Cell.LiveState.Live))
 				i++;
-			if (cell.DownRight != null && (cell.DownRight.State == LiveState.Emerging || cell.DownRight.State == LiveState.Live))
+			if (cell.DownRight != null && (cell.DownRight.State == Cell.LiveState.Emerging || cell.DownRight.State == Cell.LiveState.Live))
 				i++;
 
 			//if (x > 0 && (_cells[x - 1, y].State == LiveState.Emerging || _cells[x - 1, y].State == LiveState.Live))

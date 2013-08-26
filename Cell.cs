@@ -3,24 +3,22 @@ using SFML.Window;
 
 namespace SFML
 {
-	public enum LiveState
-	{
-		Emerging,
-		Live,
-		Dying,
-		Dead
-	}
-
 	public class Cell
 	{
+		public enum LiveState
+		{
+			Emerging,
+			Live,
+			Dying,
+			Dead
+		}
+
 		private static readonly int width, height;
 
 		private LiveState _state;
-		private readonly Drawable _shape;
-		//private readonly int _x, _y;
+		private readonly RectangleShape _shape;
 		private readonly Cell _up, _left;
 		private Cell _down, _right;
-		//private readonly GameLife _list;
 
 		static Cell()
 		{
@@ -53,7 +51,7 @@ namespace SFML
 			set { _state = value; }
 		}
 
-		public Drawable Shape
+		public RectangleShape Shape
 		{
 			get { return _shape; }
 		}
@@ -108,7 +106,7 @@ namespace SFML
 			get { return Down != null ? Down.Right : null; }
 		}
 
-		private static Drawable CreateShape()
+		private static RectangleShape CreateShape()
 		{
 			return new RectangleShape(new Vector2f(width, height))
 				{
