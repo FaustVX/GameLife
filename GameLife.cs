@@ -9,7 +9,7 @@ namespace SFML
 		private static readonly Dictionary<Cell.LiveState, Color> colors, selectedColors;
 		private readonly int _width, _height;
 		private readonly Cell[,] _cells;
-		private bool _running;
+		private bool _running, _oneFrame;
 		private int _generation;
 		private Cell _selectedCell;
 
@@ -37,6 +37,7 @@ namespace SFML
 			//: base(width, height)
 		{
 			_running = false;
+			_oneFrame = false;
 			_generation = 1;
 			_width = width;
 			_height = height;
@@ -84,7 +85,7 @@ namespace SFML
 			set { _running = value; }
 		}
 
-		public int Iteration
+		public int Generation
 		{
 			get { return _generation; }
 		}
@@ -95,10 +96,15 @@ namespace SFML
 			set { _selectedCell = value; }
 		}
 
+		public void OneFrame()
+		{
+			_oneFrame = true;
+		}
+
 		public IEnumerable<Drawable> Draw(int offset)
 		{
 			Cell.LiveState[,] newCells = null;
-			if(_running)
+			if(_running || _oneFrame)
 			{
 				newCells = new Cell.LiveState[_width, _height];
 
@@ -135,6 +141,7 @@ namespace SFML
 								break;
 						}
 					}
+				_generation++;
 			}
 
 			for (int x = 0; x < _width; ++x)
@@ -143,12 +150,13 @@ namespace SFML
 					Cell cell = _cells[x, y];
 
 					cell.Shape.FillColor = (cell == _selectedCell) ? selectedColors[cell.State] : colors[cell.State];
-					if (_running)
+					if (_running || _oneFrame)
 						cell.State = newCells[x, y];
 					cell.Shape.Position = new Window.Vector2f(offset + x * Cell.Width, y * Cell.Height);
 					yield return cell.Shape;
 				}
-			_generation++;
+			if (_oneFrame)
+				_oneFrame = false;
 		}
 
 		private static int Arround(Cell cell)
@@ -191,6 +199,16 @@ namespace SFML
 			//	i++;
 
 			return i;
+		}
+
+		public void Reset()
+		{
+			foreach (Cell cell in _cells)
+				cell.State = (cell.State != Cell.LiveState.Dead) ? Cell.LiveState.Dying : Cell.LiveState.Dead;
+
+			_running = false;
+			_generation = 0;
+			_oneFrame = true;
 		}
 	}
 }
