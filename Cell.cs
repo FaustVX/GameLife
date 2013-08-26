@@ -1,4 +1,6 @@
-﻿using SFML.Graphics;
+﻿using System.Collections.Generic;
+using SFML.Audio;
+using SFML.Graphics;
 using SFML.Window;
 
 namespace SFML
@@ -13,21 +15,31 @@ namespace SFML
 			Dead
 		}
 
+		//private static readonly SoundBuffer spawn, die;
 		private static readonly int width, height;
+		private static readonly List<Cell> _livingCells;
 
 		private LiveState _state;
 		private readonly RectangleShape _shape;
+		private readonly int _x, _y;
 		private readonly Cell _up, _left;
 		private Cell _down, _right;
 
 		static Cell()
 		{
+			//spawn = new SoundBuffer(@"Sounds\Spawn.aif");
+			//die = new SoundBuffer(@"Sounds\Die.aif");
+
 			width = 15;
 			height = 15;
+
+			_livingCells = new List<Cell>();
 		}
 
 		public Cell(int x, int y, GameLife list)
 		{
+			_x = x;
+			_y = y;
 			_state = LiveState.Dead;
 			_shape = CreateShape();
 
@@ -48,7 +60,30 @@ namespace SFML
 		public LiveState State
 		{
 			get { return _state; }
-			set { _state = value; }
+			set
+			{
+				if (_state == value)
+					return;
+				_state = value;
+				if (_state == LiveState.Live || _state == LiveState.Emerging)
+				{
+					AddCell(this);
+					//if (_state == LiveState.Emerging)
+					//	new Sound(spawn)
+					//		{
+					//			Position = new Vector3f(_x, 0, _y)
+					//		}.Play();
+				}
+				else
+				{
+					RemoveCell(this);
+					//if (_state == LiveState.Dying)
+					//	new Sound(die)
+					//		{
+					//			Position = new Vector3f(_x, 0, _y)
+					//		}.Play();
+				}
+			}
 		}
 
 		public RectangleShape Shape
@@ -106,6 +141,33 @@ namespace SFML
 			get { return Down != null ? Down.Right : null; }
 		}
 
+		public int X
+		{
+			get { return _x; }
+		}
+
+		public int Y
+		{
+			get { return _y; }
+		}
+
+		public static List<Cell> LivingCells
+		{
+			get { return _livingCells; }
+		}
+
+		public static void AddCell(Cell cell)
+		{
+			if (!LivingCells.Contains(cell))
+				LivingCells.Add(cell);
+		}
+
+		public static void RemoveCell(Cell cell)
+		{
+			if (LivingCells.Contains(cell))
+				LivingCells.Remove(cell);
+		}
+
 		private static RectangleShape CreateShape()
 		{
 			return new RectangleShape(new Vector2f(width, height))
@@ -120,18 +182,21 @@ namespace SFML
 			switch (State)
 			{
 				case LiveState.Emerging:
+					//RemoveCell(this);
 					State = LiveState.Dying;
 					break;
 				case LiveState.Live:
+					//RemoveCell(this);
 					State = LiveState.Dying;
 					break;
 				case LiveState.Dying:
+					//AddCell(this);
 					State = LiveState.Emerging;
 					break;
 				case LiveState.Dead:
+					//AddCell(this);
 					State = LiveState.Emerging;
 					break;
-
 			}
 		}
 	}

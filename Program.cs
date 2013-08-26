@@ -11,7 +11,7 @@ namespace SFML
 		private static readonly GameLife GameLife;
 		private static readonly Color RegularGrey;
 
-		private static readonly Window.Vector2i Offset;
+		private static readonly Vector2i Offset;
 		private static readonly Dictionary<bool, Color> PauseColor;
 
 		static Program()
@@ -25,6 +25,7 @@ namespace SFML
 				};
 
 			Offset = new Window.Vector2i(100, 0);
+			GameLife.States = true;
 			GameLife = new GameLife(60, 40);
 
 			Window =
@@ -32,10 +33,10 @@ namespace SFML
 					new Window.VideoMode((uint)(GameLife.Width * Cell.Width + Offset.X), (uint)(GameLife.Height * Cell.Height + Offset.Y), 32),
 					"Game of live")
 					{
-						Position = new Window.Vector2i(300, 100)
+						Position = new Vector2i(300, 100)
 					};
 
-			Window.SetFramerateLimit(10);
+			Window.SetFramerateLimit(5);
 			Window.Closed += (s, e) => Window.Close();
 
 			Window.KeyReleased += Window_KeyReleased;
@@ -77,6 +78,8 @@ namespace SFML
 
 		private static void window_MouseButtonReleased(object sender, Window.MouseButtonEventArgs e)
 		{
+			if (GameLife.Running)
+				return;
 			if (e.Button != SFML.Window.Mouse.Button.Left)
 				return;
 
@@ -110,7 +113,7 @@ namespace SFML
 					Window.Draw(shape);
 
 				Window.Display();
-
+				GameLife.States = false;
 			}
 		}
 	}
