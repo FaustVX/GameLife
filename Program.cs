@@ -4,7 +4,6 @@
 using System.Collections.Generic;
 using CSharpHelper;
 using SFML.Graphics;
-using System.Linq;
 
 namespace SFML
 {
