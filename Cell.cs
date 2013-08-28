@@ -22,8 +22,8 @@ namespace GameLife
 
 		static Cell()
 		{
-			width = 10;
-			height = 10;
+			width = Config.Configuration.CellWidth;
+			height = Config.Configuration.CellHeight;
 		}
 
 		public Cell(int x, int y, GameLife list)

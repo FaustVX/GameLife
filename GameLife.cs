@@ -20,37 +20,24 @@ namespace GameLife
 
 		static GameLife()
 		{
-			colors = new Dictionary<Cell.LiveState, Color>()
-				{
-					{Cell.LiveState.Emerging,Color.Green},
-					{Cell.LiveState.Live, Color.Blue},
-					{Cell.LiveState.Dying, new Color(255, 127, 0)},
-					{Cell.LiveState.Dead, new Color(200, 200, 200)}
-				};
+			Config config = Config.Configuration;
 
-			selectedColors = new Dictionary<Cell.LiveState, Color>()
-				{
-					{Cell.LiveState.Emerging, Color.Cyan},
-					{Cell.LiveState.Live, Color.White},
-					{Cell.LiveState.Dying, Color.Red},
-					{Cell.LiveState.Dead, Color.Black}
-				};
+			colors = config.Colors;
+			selectedColors = config.SelectedColors;
 		}
 
-		public GameLife(int width, int height, int fps)
-			: this(width, height, fps, live: new int[] { 3 }, survive: new int[] { 2, 3 })
-		{ }
-
-		public GameLife(int width, int height, int fps, int[] live, int[] survive)
+		public GameLife(int fps)
 		{
+			Config config = Config.Configuration;
+
 			_running = false;
 			_oneFrame = false;
 			_generation = 1;
-			_width = width;
-			_height = height;
-			_fps = fps;
-			_live = live;
-			_survive = survive;
+			_width = config.GridWidth;
+			_height = config.GridHeight;
+			_fps = fps / config.FPS;
+			_live = config.Live;
+			_survive = config.Survive;
 			_frame = -1;
 
 			_cells = new Cell[Width,Height];
@@ -119,6 +106,11 @@ namespace GameLife
 					colors[Cell.LiveState.Dying] = new Color(255, 127, 0);
 				}
 			}
+		}
+
+		public int FPS
+		{
+			get { return _fps; }
 		}
 
 		public void OneFrame()

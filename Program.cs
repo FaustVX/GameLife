@@ -17,20 +17,16 @@ namespace GameLife
 		static Program()
 		{
 			RegularGrey = new Color(127, 127, 127);
-			Font = new Font(@"Font\visitor.ttf");
-			PauseColor = new Dictionary<bool, Color>()
-				{
-					{true, Color.Black},
-					{false, Color.White}
-				};
+			Font = new Font(Config.Configuration.Font);
+			PauseColor = Config.Configuration.PauseColor;
 
 			Offset = new Vector2i(100, 0);
-			GameLife = new GameLife(90, 60, 1);
+			GameLife = new GameLife(100);
 
 			Window =
 				new RenderWindow(
 					new VideoMode((uint)(GameLife.Width * Cell.Width + Offset.X), (uint)(GameLife.Height * Cell.Height + Offset.Y), 32),
-					"Game of live")
+					"Game of life")
 					{
 						Position = new Vector2i(300, 100)
 					};
