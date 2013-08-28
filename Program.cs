@@ -25,7 +25,7 @@ namespace GameLife
 				};
 
 			Offset = new Vector2i(100, 0);
-			GameLife = new GameLife(60, 40, 10);
+			GameLife = new GameLife(180, 120, 1);
 
 			Window =
 				new RenderWindow(
@@ -114,7 +114,7 @@ namespace GameLife
 				Window.DispatchEvents();
 				Window.Clear(PauseColor[GameLife.Running]);
 
-				Window.Draw(new Text("Gen:\n" + GameLife.Generation.ToString(), Font)
+				Window.Draw(new Text("Gen:\n" + GameLife.Generation, Font)
 					{
 						Color = RegularGrey,
 						Style = Text.Styles.Underlined

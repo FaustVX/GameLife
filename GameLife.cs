@@ -130,6 +130,8 @@ namespace GameLife
 
 		public void OneFrame()
 		{
+			if (!_running)
+				_frame = -1;
 			_oneFrame = true;
 		}
 
@@ -207,6 +209,7 @@ namespace GameLife
 					cell.Shape.FillColor = (cell == _selectedCell) ? selectedColors[cell.State] : colors[cell.State];
 					if (_frame % _fps == 0)
 					{
+						_frame = 0;
 						if (_running || _oneFrame)
 							cell.State = newCells[x, y];
 						cell.Shape.Position = new Vector2f(offset + x * Cell.Width, y * Cell.Height);

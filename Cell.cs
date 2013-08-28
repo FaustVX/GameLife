@@ -21,16 +21,15 @@ namespace GameLife
 		private LiveState _state;
 		private readonly RectangleShape _shape;
 		private readonly int _x, _y;
-		private readonly Cell _up, _left;
-		private Cell _down, _right;
+		private Cell _up, _left, _down, _right;
 
 		static Cell()
 		{
 			//spawn = new SoundBuffer(@"Sounds\Spawn.aif");
 			//die = new SoundBuffer(@"Sounds\Die.aif");
 
-			width = 15;
-			height = 15;
+			width = 5;
+			height = 5;
 
 			_livingCells = new List<Cell>();
 		}
@@ -45,14 +44,24 @@ namespace GameLife
 
 			if (x != 0)
 			{
-				_up = list[x - 1, y];
-				_up._down = this;
+				_left = list[x - 1, y];
+				_left._right = this;
+				if (_x == list.Width - 1)
+				{
+					_right = list[0, y];
+					_right._left = this;
+				}
 			}
 
 			if (y != 0)
 			{
-				_left = list[x, y - 1];
-				_left._right = this;
+				_up = list[x, y - 1];
+				_up._down = this;
+				if (_y == list.Height - 1)
+				{
+					_down = list[x, 0];
+					_down._up = this;
+				}
 			}
 		}
 
