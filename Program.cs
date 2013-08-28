@@ -25,7 +25,7 @@ namespace GameLife
 				};
 
 			Offset = new Vector2i(100, 0);
-			GameLife = new GameLife(180, 120, 1);
+			GameLife = new GameLife(90, 60, 1);
 
 			Window =
 				new RenderWindow(
@@ -57,11 +57,6 @@ namespace GameLife
 					GameLife.Reset();
 					break;
 				case Keyboard.Key.LShift:
-					if (GameLife.States)
-						GameLife.Quadricolor();
-					else
-						GameLife.Bicolor();
-					break;
 				case Keyboard.Key.RShift:
 					if (GameLife.States)
 						GameLife.Quadricolor();

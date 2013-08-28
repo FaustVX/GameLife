@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using SFML.Graphics;
+﻿using SFML.Graphics;
 using SFML.Window;
 
 namespace GameLife
@@ -14,9 +13,7 @@ namespace GameLife
 			Dead
 		}
 
-		//private static readonly SoundBuffer spawn, die;
 		private static readonly int width, height;
-		private static readonly List<Cell> _livingCells;
 
 		private LiveState _state;
 		private readonly RectangleShape _shape;
@@ -25,13 +22,8 @@ namespace GameLife
 
 		static Cell()
 		{
-			//spawn = new SoundBuffer(@"Sounds\Spawn.aif");
-			//die = new SoundBuffer(@"Sounds\Die.aif");
-
-			width = 5;
-			height = 5;
-
-			_livingCells = new List<Cell>();
+			width = 10;
+			height = 10;
 		}
 
 		public Cell(int x, int y, GameLife list)
@@ -68,30 +60,7 @@ namespace GameLife
 		public LiveState State
 		{
 			get { return _state; }
-			set
-			{
-				if (_state == value)
-					return;
-				_state = value;
-				if (_state == LiveState.Live || _state == LiveState.Emerging)
-				{
-					AddCell(this);
-					//if (_state == LiveState.Emerging)
-					//	new Sound(spawn)
-					//		{
-					//			Position = new Vector3f(_x, 0, _y)
-					//		}.Play();
-				}
-				else
-				{
-					RemoveCell(this);
-					//if (_state == LiveState.Dying)
-					//	new Sound(die)
-					//		{
-					//			Position = new Vector3f(_x, 0, _y)
-					//		}.Play();
-				}
-			}
+			set { _state = value; }
 		}
 
 		public RectangleShape Shape
@@ -159,23 +128,6 @@ namespace GameLife
 			get { return _y; }
 		}
 
-		public static List<Cell> LivingCells
-		{
-			get { return _livingCells; }
-		}
-
-		public static void AddCell(Cell cell)
-		{
-			if (!LivingCells.Contains(cell))
-				LivingCells.Add(cell);
-		}
-
-		public static void RemoveCell(Cell cell)
-		{
-			if (LivingCells.Contains(cell))
-				LivingCells.Remove(cell);
-		}
-
 		private static RectangleShape CreateShape()
 		{
 			return new RectangleShape(new Vector2f(width, height))
@@ -190,19 +142,11 @@ namespace GameLife
 			switch (State)
 			{
 				case LiveState.Emerging:
-					//RemoveCell(this);
-					State = LiveState.Dying;
-					break;
 				case LiveState.Live:
-					//RemoveCell(this);
 					State = LiveState.Dying;
 					break;
 				case LiveState.Dying:
-					//AddCell(this);
-					State = LiveState.Emerging;
-					break;
 				case LiveState.Dead:
-					//AddCell(this);
 					State = LiveState.Emerging;
 					break;
 			}

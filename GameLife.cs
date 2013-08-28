@@ -6,7 +6,6 @@ using SFML.Window;
 namespace GameLife
 {
 	public class GameLife
-		//: CSharpHelper.Grid<CSharpHelper.DiagonalCell>
 	{
 		private static readonly Dictionary<Cell.LiveState, Color> colors, selectedColors;
 		private readonly int _width, _height;
@@ -17,6 +16,7 @@ namespace GameLife
 		private int _generation;
 		private Cell _selectedCell;
 		private int _frame;
+		private readonly int[] _live, _survive;
 
 		static GameLife()
 		{
@@ -38,7 +38,10 @@ namespace GameLife
 		}
 
 		public GameLife(int width, int height, int fps)
-			//: base(width, height)
+			: this(width, height, fps, live: new int[] { 3 }, survive: new int[] { 2, 3 })
+		{ }
+
+		public GameLife(int width, int height, int fps, int[] live, int[] survive)
 		{
 			_running = false;
 			_oneFrame = false;
@@ -46,6 +49,8 @@ namespace GameLife
 			_width = width;
 			_height = height;
 			_fps = fps;
+			_live = live;
+			_survive = survive;
 			_frame = -1;
 
 			_cells = new Cell[Width,Height];
@@ -58,11 +63,6 @@ namespace GameLife
 		public static Dictionary<Cell.LiveState, Color> Colors
 		{
 			get { return colors; }
-		}
-
-		public static Dictionary<Cell.LiveState, Color> SelectedColors
-		{
-			get { return selectedColors; }
 		}
 
 		public Cell this[int x, int y]
@@ -99,20 +99,13 @@ namespace GameLife
 		public Cell SelectedCell
 		{
 			get { return _selectedCell; }
-			set
-			{
-				_selectedCell = value;
-				SFML.Audio.Listener.Direction = new SFML.Audio.Vector3f(0, 0, -1);
-				SFML.Audio.Listener.Position = _selectedCell != null
-											? new SFML.Audio.Vector3f(_selectedCell.X, 0, _selectedCell.Y)
-											: new SFML.Audio.Vector3f(0, 0, 0);
-			}
+			set { _selectedCell = value; }
 		}
 
 		public static bool States
 		{
 			get { return _2States; }
-			set
+			private set
 			{
 				_2States = value;
 				if (_2States)
@@ -147,55 +140,35 @@ namespace GameLife
 						for (int j = 0; j < _height; ++j)
 							newCells[i, j] = Cell.LiveState.Dead;
 
-					//for (int index = 0; index < Cell.LivingCells.Count; index++)
-					//	foreach (Cell cell in Arround(Cell.LivingCells[index]))
-
 
 					for (int i = 0; i < _width; ++i)
 						for (int j = 0; j < _height; ++j)
 						{
 							Cell cell = _cells[i, j];
 							int living = Arround(cell).Count();
-							//int i = cell.X;
-							//int j = cell.Y;
 							switch (cell.State)
 							{
-								case Cell.LiveState.Emerging:
-									if (living == 2 || living == 3)
-										newCells[i, j] = Cell.LiveState.Live;
-									else
-									{
-										//Cell.RemoveCell(cell);
-										newCells[i, j] = Cell.LiveState.Dying;
-									}
-									break;
 								case Cell.LiveState.Live:
-									if (living == 2 || living == 3)
-										newCells[i, j] = cell.State;
-									else
+								case Cell.LiveState.Emerging:
 									{
-										//Cell.RemoveCell(cell);
-										newCells[i, j] = Cell.LiveState.Dying;
+										bool find = _survive.Any(val => val == living);
+
+										if (find)
+											newCells[i, j] = Cell.LiveState.Live;
+										else
+											newCells[i, j] = Cell.LiveState.Dying;
+										break;
 									}
-									break;
-								case Cell.LiveState.Dying:
-									if (living == 3)
-									{
-										//Cell.AddCell(cell);
-										newCells[i, j] = Cell.LiveState.Emerging;
-									}
-									else
-										newCells[i, j] = Cell.LiveState.Dead;
-									break;
 								case Cell.LiveState.Dead:
-									if (living == 3)
+								case Cell.LiveState.Dying:
 									{
-										//Cell.AddCell(cell);
-										newCells[i, j] = Cell.LiveState.Emerging;
+										bool find = _live.Any(val => val == living);
+										if (find)
+											newCells[i, j] = Cell.LiveState.Emerging;
+										else
+											newCells[i, j] = Cell.LiveState.Dead;
+										break;
 									}
-									else
-										newCells[i, j] = cell.State;
-									break;
 							}
 						}
 					_generation++;
@@ -205,7 +178,7 @@ namespace GameLife
 				for (int y = 0; y < _height; ++y)
 				{
 					Cell cell = _cells[x, y];
-
+					
 					cell.Shape.FillColor = (cell == _selectedCell) ? selectedColors[cell.State] : colors[cell.State];
 					if (_frame % _fps == 0)
 					{
@@ -241,24 +214,6 @@ namespace GameLife
 			if (cell.DownRight != null &&
 				(cell.DownRight.State == Cell.LiveState.Emerging || cell.DownRight.State == Cell.LiveState.Live))
 				yield return cell.DownRight;
-
-			//if (x > 0 && (_cells[x - 1, y].State == LiveState.Emerging || _cells[x - 1, y].State == LiveState.Live))
-			//	i++;
-			//if (x > 0 && y > 0 && (_cells[x - 1, y - 1].State == LiveState.Emerging || _cells[x - 1, y - 1].State == LiveState.Live))
-			//	i++;
-			//if (y > 0 && (_cells[x, y - 1].State == LiveState.Emerging || _cells[x, y - 1].State == LiveState.Live))
-			//	i++;
-			//if (x < _width - 1 && y > 0 && (_cells[x + 1, y - 1].State == LiveState.Emerging || _cells[x + 1, y - 1].State == LiveState.Live))
-			//	i++;
-			//if (x < _width - 1 && (_cells[x + 1, y].State == LiveState.Emerging || _cells[x + 1, y].State == LiveState.Live))
-			//	i++;
-			//if (x < _width - 1 && y < _height - 1 &&
-			//	(_cells[x + 1, y + 1].State == LiveState.Emerging || _cells[x + 1, y + 1].State == LiveState.Live))
-			//	i++;
-			//if (y < _height - 1 && (_cells[x, y + 1].State == LiveState.Emerging || _cells[x, y + 1].State == LiveState.Live))
-			//	i++;
-			//if (x > 0 && y < _height - 1 && (_cells[x - 1, y + 1].State == LiveState.Emerging || _cells[x - 1, y + 1].State == LiveState.Live))
-			//	i++;
 		}
 
 		public void Pause()
@@ -266,11 +221,11 @@ namespace GameLife
 			_running = !_running;
 		}
 
-		public void Bicolor()
+		public static void Bicolor()
 		{
 			States = true;
 		}
-		public void Quadricolor()
+		public static void Quadricolor()
 		{
 			States = false;
 		}
