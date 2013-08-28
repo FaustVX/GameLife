@@ -1,19 +1,22 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using SFML.Graphics;
+using SFML.Window;
 
-namespace SFML
+namespace GameLife
 {
 	public class GameLife
 		//: CSharpHelper.Grid<CSharpHelper.DiagonalCell>
 	{
 		private static readonly Dictionary<Cell.LiveState, Color> colors, selectedColors;
 		private readonly int _width, _height;
+		private readonly int _fps;
 		private readonly Cell[,] _cells;
 		private bool _running, _oneFrame;
 		private static bool _2States;
 		private int _generation;
 		private Cell _selectedCell;
+		private int _frame;
 
 		static GameLife()
 		{
@@ -34,7 +37,7 @@ namespace SFML
 				};
 		}
 
-		public GameLife(int width, int height)
+		public GameLife(int width, int height, int fps)
 			//: base(width, height)
 		{
 			_running = false;
@@ -42,6 +45,8 @@ namespace SFML
 			_generation = 1;
 			_width = width;
 			_height = height;
+			_fps = fps;
+			_frame = -1;
 
 			_cells = new Cell[Width,Height];
 
@@ -97,10 +102,10 @@ namespace SFML
 			set
 			{
 				_selectedCell = value;
-				Audio.Listener.Direction = new Audio.Vector3f(0, 0, -1);
-				Audio.Listener.Position = _selectedCell != null
-											? new Audio.Vector3f(_selectedCell.X, 0, _selectedCell.Y)
-											: new Audio.Vector3f(0, 0, 0);
+				SFML.Audio.Listener.Direction = new SFML.Audio.Vector3f(0, 0, -1);
+				SFML.Audio.Listener.Position = _selectedCell != null
+											? new SFML.Audio.Vector3f(_selectedCell.X, 0, _selectedCell.Y)
+											: new SFML.Audio.Vector3f(0, 0, 0);
 			}
 		}
 
@@ -130,67 +135,69 @@ namespace SFML
 
 		public IEnumerable<Drawable> Draw(int offset)
 		{
+			_frame++;
 			Cell.LiveState[,] newCells = null;
-			if(_running || _oneFrame)
-			{
-				newCells = new Cell.LiveState[_width, _height];
-				for (int i = 0; i < _width; ++i)
-					for (int j = 0; j < _height; ++j)
-						newCells[i, j] = Cell.LiveState.Dead;
+			if(_frame%_fps==0)
+				if (_running || _oneFrame)
+				{
+					newCells = new Cell.LiveState[_width,_height];
+					for (int i = 0; i < _width; ++i)
+						for (int j = 0; j < _height; ++j)
+							newCells[i, j] = Cell.LiveState.Dead;
 
-				//for (int index = 0; index < Cell.LivingCells.Count; index++)
-				//	foreach (Cell cell in Arround(Cell.LivingCells[index]))
+					//for (int index = 0; index < Cell.LivingCells.Count; index++)
+					//	foreach (Cell cell in Arround(Cell.LivingCells[index]))
 
 
-				for (int i = 0; i < _width; ++i)
-					for (int j = 0; j < _height; ++j)
-					{
-						Cell cell = _cells[i, j];
-						int living = Arround(cell).Count();
-						//int i = cell.X;
-						//int j = cell.Y;
-						switch (cell.State)
+					for (int i = 0; i < _width; ++i)
+						for (int j = 0; j < _height; ++j)
 						{
-							case Cell.LiveState.Emerging:
-								if (living == 2 || living == 3)
-									newCells[i, j] = Cell.LiveState.Live;
-								else
-								{
-									//Cell.RemoveCell(cell);
-									newCells[i, j] = Cell.LiveState.Dying;
-								}
-								break;
-							case Cell.LiveState.Live:
-								if (living == 2 || living == 3)
-									newCells[i, j] = cell.State;
-								else
-								{
-									//Cell.RemoveCell(cell);
-									newCells[i, j] = Cell.LiveState.Dying;
-								}
-								break;
-							case Cell.LiveState.Dying:
-								if (living == 3)
-								{
-									//Cell.AddCell(cell);
-									newCells[i, j] = Cell.LiveState.Emerging;
-								}
-								else
-									newCells[i, j] = Cell.LiveState.Dead;
-								break;
-							case Cell.LiveState.Dead:
-								if (living == 3)
-								{
-									//Cell.AddCell(cell);
-									newCells[i, j] = Cell.LiveState.Emerging;
-								}
-								else
-									newCells[i, j] = cell.State;
-								break;
+							Cell cell = _cells[i, j];
+							int living = Arround(cell).Count();
+							//int i = cell.X;
+							//int j = cell.Y;
+							switch (cell.State)
+							{
+								case Cell.LiveState.Emerging:
+									if (living == 2 || living == 3)
+										newCells[i, j] = Cell.LiveState.Live;
+									else
+									{
+										//Cell.RemoveCell(cell);
+										newCells[i, j] = Cell.LiveState.Dying;
+									}
+									break;
+								case Cell.LiveState.Live:
+									if (living == 2 || living == 3)
+										newCells[i, j] = cell.State;
+									else
+									{
+										//Cell.RemoveCell(cell);
+										newCells[i, j] = Cell.LiveState.Dying;
+									}
+									break;
+								case Cell.LiveState.Dying:
+									if (living == 3)
+									{
+										//Cell.AddCell(cell);
+										newCells[i, j] = Cell.LiveState.Emerging;
+									}
+									else
+										newCells[i, j] = Cell.LiveState.Dead;
+									break;
+								case Cell.LiveState.Dead:
+									if (living == 3)
+									{
+										//Cell.AddCell(cell);
+										newCells[i, j] = Cell.LiveState.Emerging;
+									}
+									else
+										newCells[i, j] = cell.State;
+									break;
+							}
 						}
-					}
-				_generation++;
-			}
+					_generation++;
+				}
 
 			for (int x = 0; x < _width; ++x)
 				for (int y = 0; y < _height; ++y)
@@ -198,9 +205,12 @@ namespace SFML
 					Cell cell = _cells[x, y];
 
 					cell.Shape.FillColor = (cell == _selectedCell) ? selectedColors[cell.State] : colors[cell.State];
-					if (_running || _oneFrame)
-						cell.State = newCells[x, y];
-					cell.Shape.Position = new Window.Vector2f(offset + x * Cell.Width, y * Cell.Height);
+					if (_frame % _fps == 0)
+					{
+						if (_running || _oneFrame)
+							cell.State = newCells[x, y];
+						cell.Shape.Position = new Vector2f(offset + x * Cell.Width, y * Cell.Height);
+					}
 					yield return cell.Shape;
 				}
 			if (_oneFrame)
@@ -246,6 +256,20 @@ namespace SFML
 			//	i++;
 			//if (x > 0 && y < _height - 1 && (_cells[x - 1, y + 1].State == LiveState.Emerging || _cells[x - 1, y + 1].State == LiveState.Live))
 			//	i++;
+		}
+
+		public void Pause()
+		{
+			_running = !_running;
+		}
+
+		public void Bicolor()
+		{
+			States = true;
+		}
+		public void Quadricolor()
+		{
+			States = false;
 		}
 
 		public void Reset()

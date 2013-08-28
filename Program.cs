@@ -2,7 +2,7 @@
 using SFML.Graphics;
 using SFML.Window;
 
-namespace SFML
+namespace GameLife
 {
 	internal static class Program
 	{
@@ -24,19 +24,18 @@ namespace SFML
 					{false, Color.White}
 				};
 
-			Offset = new Window.Vector2i(100, 0);
-			GameLife.States = true;
-			GameLife = new GameLife(60, 40);
+			Offset = new Vector2i(100, 0);
+			GameLife = new GameLife(60, 40, 10);
 
 			Window =
 				new RenderWindow(
-					new Window.VideoMode((uint)(GameLife.Width * Cell.Width + Offset.X), (uint)(GameLife.Height * Cell.Height + Offset.Y), 32),
+					new VideoMode((uint)(GameLife.Width * Cell.Width + Offset.X), (uint)(GameLife.Height * Cell.Height + Offset.Y), 32),
 					"Game of live")
 					{
 						Position = new Vector2i(300, 100)
 					};
 
-			Window.SetFramerateLimit(5);
+			Window.SetFramerateLimit(100);
 			Window.Closed += (s, e) => Window.Close();
 
 			Window.KeyReleased += Window_KeyReleased;
@@ -44,12 +43,12 @@ namespace SFML
 			Window.MouseMoved += Window_MouseMoved;
 		}
 
-		static void Window_KeyReleased(object sender, Window.KeyEventArgs e)
+		static void Window_KeyReleased(object sender, KeyEventArgs e)
 		{
 			switch (e.Code)
 			{
 				case Keyboard.Key.Space:
-					GameLife.Running = !GameLife.Running;
+					GameLife.Pause();
 					break;
 				case Keyboard.Key.Right:
 					GameLife.OneFrame();
@@ -57,10 +56,22 @@ namespace SFML
 				case Keyboard.Key.Left:
 					GameLife.Reset();
 					break;
+				case Keyboard.Key.LShift:
+					if (GameLife.States)
+						GameLife.Quadricolor();
+					else
+						GameLife.Bicolor();
+					break;
+				case Keyboard.Key.RShift:
+					if (GameLife.States)
+						GameLife.Quadricolor();
+					else
+						GameLife.Bicolor();
+					break;
 			}
 		}
 
-		private static void Window_MouseMoved(object sender, Window.MouseMoveEventArgs e)
+		private static void Window_MouseMoved(object sender, MouseMoveEventArgs e)
 		{
 			e.X -= Offset.X;
 			e.Y -= Offset.Y;
@@ -76,7 +87,7 @@ namespace SFML
 			GameLife.SelectedCell = GameLife[x, y];
 		}
 
-		private static void window_MouseButtonReleased(object sender, Window.MouseButtonEventArgs e)
+		private static void window_MouseButtonReleased(object sender, MouseButtonEventArgs e)
 		{
 			if (GameLife.Running)
 				return;
@@ -113,7 +124,6 @@ namespace SFML
 					Window.Draw(shape);
 
 				Window.Display();
-				GameLife.States = false;
 			}
 		}
 	}

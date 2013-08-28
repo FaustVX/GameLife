@@ -1,9 +1,8 @@
 ﻿using System.Collections.Generic;
-using SFML.Audio;
 using SFML.Graphics;
 using SFML.Window;
 
-namespace SFML
+namespace GameLife
 {
 	public class Cell
 	{
