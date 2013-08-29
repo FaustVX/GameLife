@@ -128,10 +128,6 @@ namespace GameLife
 				if (_running || _oneFrame)
 				{
 					newCells = new Cell.LiveState[_width,_height];
-					for (int i = 0; i < _width; ++i)
-						for (int j = 0; j < _height; ++j)
-							newCells[i, j] = Cell.LiveState.Dead;
-
 
 					for (int i = 0; i < _width; ++i)
 						for (int j = 0; j < _height; ++j)

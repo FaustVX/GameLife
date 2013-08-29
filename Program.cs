@@ -28,7 +28,7 @@ namespace GameLife
 					new VideoMode((uint)(GameLife.Width * Cell.Width + Offset.X), (uint)(GameLife.Height * Cell.Height + Offset.Y), 32),
 					"Game of life")
 					{
-						Position = new Vector2i(300, 100)
+						Position = new Vector2i(10, 10)
 					};
 
 			Window.SetFramerateLimit(100);

@@ -9,6 +9,7 @@ namespace GameLife
 	public class Config
 	{
 		public static readonly Config Configuration;
+		public static readonly Config Base;
 
 		private readonly int[] _live, _survive;
 		private readonly int _cellWidth, _cellHeight, _gridWidth, _gridHeight;
@@ -19,6 +20,26 @@ namespace GameLife
 
 		static Config()
 		{
+			var c = new Dictionary<Cell.LiveState, Color>()
+				{
+					{Cell.LiveState.Emerging, Color.Green},
+					{Cell.LiveState.Live, Color.Blue},
+					{Cell.LiveState.Dying, new Color(255, 127, 0)},
+					{Cell.LiveState.Dead, new Color(200, 200, 200)}
+				};
+			var c1 = new Dictionary<Cell.LiveState, Color>()
+				{
+					{Cell.LiveState.Emerging, Color.Cyan},
+					{Cell.LiveState.Live, Color.White},
+					{Cell.LiveState.Dying, Color.Red},
+					{Cell.LiveState.Dead, Color.Black}
+				};
+			var c2 = new Dictionary<bool, Color>()
+				{
+					{true, Color.Black},
+					{false, Color.White}
+				};
+			Base = new Config(new int[] { 3 }, new int[] { 2, 3 }, 6, 6, 200, 100, 50, c, c1, c2, @"Font\Pokemon.ttf");
 			Configuration = Create(@"Config.json");
 		}
 
@@ -113,56 +134,35 @@ namespace GameLife
 		{
 			if (filepath == string.Empty || !File.Exists(filepath))
 			{
-				var c = new Dictionary<Cell.LiveState, Color>()
-					{
-						{Cell.LiveState.Emerging, Color.Green},
-						{Cell.LiveState.Live, Color.Blue},
-						{Cell.LiveState.Dying, new Color(255, 127, 0)},
-						{Cell.LiveState.Dead, new Color(200, 200, 200)}
-					};
-				var c1 = new Dictionary<Cell.LiveState, Color>()
-					{
-						{Cell.LiveState.Emerging, Color.Cyan},
-						{Cell.LiveState.Live, Color.White},
-						{Cell.LiveState.Dying, Color.Red},
-						{Cell.LiveState.Dead, Color.Black}
-					};
-				var c2 = new Dictionary<bool, Color>()
-					{
-						{true, Color.Black},
-						{false, Color.White}
-					};
-
-				return new Config(new int[] { 3 }, new int[] { 2, 3 }, 10, 10, 90, 60, 25, c, c1, c2, @"Font\visitor.ttf", filepath);
+				return new Config(Base.Live, Base.Survive, Base.CellWidth, Base.CellHeight, Base.GridWidth, Base.GridHeight, Base.FPS, Base.Colors, Base.SelectedColors, Base.PauseColor, Base.Font, filepath);
 			}
 			else
 			{
 				StreamReader sr = new StreamReader(filepath);
 				JObject parser = JObject.Parse(sr.ReadToEnd());
-				Config model = Create(string.Empty);
 				JToken r = parser.SelectToken("Live", false);
 
-				int[] live = r == null ? model.Live : r.ToObject<int[]>();
+				int[] live = r == null ? Base.Live : r.ToObject<int[]>();
 				r = parser.SelectToken("Survive", false);
-				int[] survive = r == null ? model.Survive : r.ToObject<int[]>();
+				int[] survive = r == null ? Base.Survive : r.ToObject<int[]>();
 				r = parser.SelectToken("CellHeight", false);
-				int cellH = r == null ? model.CellHeight : r.ToObject<int>();
+				int cellH = r == null ? Base.CellHeight : r.ToObject<int>();
 				r = parser.SelectToken("CellWidth", false);
-				int cellW = r == null ? model.CellWidth : r.ToObject<int>();
+				int cellW = r == null ? Base.CellWidth : r.ToObject<int>();
 				r = parser.SelectToken("GridHeight", false);
-				int gridH = r == null ? model.GridHeight : r.ToObject<int>();
+				int gridH = r == null ? Base.GridHeight : r.ToObject<int>();
 				r = parser.SelectToken("GridWidth", false);
-				int gridW = r == null ? model.GridWidth : r.ToObject<int>();
+				int gridW = r == null ? Base.GridWidth : r.ToObject<int>();
 				r = parser.SelectToken("FPS", false);
-				int fps = r == null ? model.FPS : r.ToObject<int>();
+				int fps = r == null ? Base.FPS : r.ToObject<int>();
 				r = parser.SelectToken("Colors", false);
-				var c = r == null ? model.Colors : r.ToObject<Dictionary<Cell.LiveState, Color>>();
+				var c = r == null ? Base.Colors : r.ToObject<Dictionary<Cell.LiveState, Color>>();
 				r = parser.SelectToken("SelectedColors", false);
-				var c1 = r == null ? model.SelectedColors : r.ToObject<Dictionary<Cell.LiveState, Color>>();
+				var c1 = r == null ? Base.SelectedColors : r.ToObject<Dictionary<Cell.LiveState, Color>>();
 				r = parser.SelectToken("PauseColor", false);
-				var c2 = r == null ? model.PauseColor : r.ToObject<Dictionary<bool, Color>>();
+				var c2 = r == null ? Base.PauseColor : r.ToObject<Dictionary<bool, Color>>();
 				r = parser.SelectToken("Font", false);
-				var font = r == null ? model.Font : r.ToObject<string>();
+				var font = r == null ? Base.Font : r.ToObject<string>();
 
 				sr.Close();
 
