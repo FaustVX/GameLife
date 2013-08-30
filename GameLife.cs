@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using SFML.Graphics;
 using SFML.Window;
 
@@ -8,9 +7,6 @@ namespace GameLife
 {
 	public class GameLife
 	{
-		private readonly int _tasksX;
-		private readonly int _tasksY;
-		private readonly Vector2i _offset;
 		private static readonly Dictionary<Cell.LiveState, Color> colors, selectedColors;
 		private readonly int _width, _height;
 		private readonly int _fps;
@@ -21,9 +17,6 @@ namespace GameLife
 		private Cell _selectedCell;
 		private int _frame;
 		private readonly int[] _live, _survive;
-		//private readonly Task<List<Drawable>>[,] _tasks;
-		private readonly bool[,] _launch;
-		//private readonly List<Drawable>[,] _lists;
 
 		static GameLife()
 		{
@@ -33,11 +26,8 @@ namespace GameLife
 			selectedColors = config.SelectedColors;
 		}
 
-		public GameLife(int fps, int tasksX, int tasksY, Vector2i offset)
+		public GameLife(int fps)
 		{
-			_tasksX = tasksX;
-			_tasksY = tasksY;
-			_offset = offset;
 			Config config = Config.Configuration;
 
 			_running = false;
@@ -48,226 +38,13 @@ namespace GameLife
 			_fps = fps / config.FPS;
 			_live = config.Live;
 			_survive = config.Survive;
-			//_tasks = new Task<List<Drawable>>[tasksX, tasksY];
-			_launch = new bool[tasksX,tasksY];
-			//_lists = new List<Drawable>[tasksX,tasksY];
 			_frame = -1;
 
 			_cells = new Cell[Width,Height];
 
-			int x = _width / _tasksX;
-			int y = _height / _tasksY;
-			for (int i = 0; i < tasksX; ++i)
-			{
-				for (int j = 0; j < tasksY; ++j)
-				{
-					_launch[i, j] = false;
-					//_lists[i, j] = new List<Drawable>();
-
-					//RectangleShape rect = new RectangleShape()
-					//{
-					//	Position = new Vector2f(i * x, j * y),
-					//	Size = new Vector2f(x, y),
-					//	Origin = new Vector2f(i, j)
-					//};
-
-					//_tasks[i, j] = new Task<List<Drawable>>(FirstCompute, rect);
-					//_tasks[i, j].Start();
-				}
-			}
-
 			for (int i = 0; i < Width; i++)
 				for (int j = 0; j < Height; j++)
 					_cells[i, j] = new Cell(i, j, this);
-		}
-
-		private Cell.LiveState[,] FirstCompute(object obj)
-		{
-			RectangleShape rect = (RectangleShape)obj;
-			int startX = (int)rect.Position.X;
-			int startY = (int)rect.Position.Y;
-			int width = (int)rect.Size.X;
-			int height = (int)rect.Size.Y;
-			int posX = (int)rect.Origin.X;
-			int posY = (int)rect.Origin.Y;
-
-			//while (true)
-			//{
-			//if (!_launch[posX, posY])
-			//	continue;
-			Cell.LiveState[,] newCells = new Cell.LiveState[width, height];
-			if (_frame % _fps == 0)
-				if (_running || _oneFrame)
-					for (int i = 0; i < width; ++i)
-						for (int j = 0; j < height; ++j)
-						{
-							Cell cell = _cells[i + startX, j + startY];
-							int living = Arround(cell).Count();
-							switch (cell.State)
-							{
-								case Cell.LiveState.Live:
-								case Cell.LiveState.Emerging:
-									{
-										bool find = _survive.Any(val => val == living);
-
-										if (find)
-											newCells[i, j] = Cell.LiveState.Live;
-										else
-											newCells[i, j] = Cell.LiveState.Dying;
-										break;
-									}
-								case Cell.LiveState.Dead:
-								case Cell.LiveState.Dying:
-									{
-										bool find = _live.Any(val => val == living);
-										if (find)
-											newCells[i, j] = Cell.LiveState.Emerging;
-										else
-											newCells[i, j] = Cell.LiveState.Dead;
-										break;
-									}
-							}
-						}
-			//else
-			//	for (int i = 0; i < width; ++i)
-			//		for (int j = 0; j < height; ++j)
-			//			newCells[i, j] = _cells[i + startX, j + startY].State;
-			return newCells;
-
-			//_launch[posX, posY] = true;
-			//bool finish;
-			//do
-			//{
-			//	finish = true;
-			//	for (int i = 0; i < _tasksX; ++i)
-			//		for (int j = 0; j < _tasksY; ++j)
-			//			if (!_launch[i, j])
-			//				finish = false;
-			//} while (!finish);
-
-			////lock (_lists[posX, posY])
-			////	_lists[posX, posY].Clear();
-			//List<Drawable> result = new List<Drawable>(width * height);
-
-			//for (int x = 0; x < width; ++x)
-			//	for (int y = 0; y < height; ++y)
-			//	{
-			//		Cell cell = _cells[startX + x, startY + y];
-
-			//		cell.Shape.FillColor = (cell == _selectedCell) ? selectedColors[cell.State] : colors[cell.State];
-			//		if (_frame % _fps == 0)
-			//		{
-			//			if (_running || _oneFrame)
-			//				cell.State = newCells[x, y];
-			//			cell.Shape.Position = new Vector2f(_offset.X + (startX + x) * Cell.Width, _offset.Y + (startY + y) * Cell.Height);
-			//		}
-			//		//lock (_lists[posX, posY])
-			//		result.Add(cell.Shape);
-			//	}
-
-			////_launch[posX, posY] = false;
-			//return result;
-			//}
-		}
-
-		private List<Drawable> AfterCompute(dynamic obj)
-		{
-			dynamic o = obj.Result;
-			// new { Cells = r.Result, X = i1, Y = j1, Width = x, Height = y };
-
-			Cell.LiveState[,] newCells = o.Cells;
-			int posX = o.X;
-			int posY = o.Y;
-			int width = o.Width;
-			int height = o.Height;
-			int startX = posX * width;
-			int startY = posY * height;
-
-			//Cell.LiveState[,] newCells = obj.Result;
-			//RectangleShape rect = (RectangleShape)obj;
-			//int startX = (int)rect.Position.X;
-			//int startY = (int)rect.Position.Y;
-			//int width = (int)rect.Size.X;
-			//int height = (int)rect.Size.Y;
-			//int posX = (int)rect.Origin.X;
-			//int posY = (int)rect.Origin.Y;
-
-			//while (true)
-			//{
-			//if (!_launch[posX, posY])
-			//	continue;
-			//Cell.LiveState[,] newCells = null;
-			//if (_frame % _fps == 0)
-			//	if (_running || _oneFrame)
-			//	{
-			//		newCells = new Cell.LiveState[width, height];
-
-			//		for (int i = 0; i < width; ++i)
-			//			for (int j = 0; j < height; ++j)
-			//			{
-			//				Cell cell = _cells[i + startX, j + startY];
-			//				int living = Arround(cell).Count();
-			//				switch (cell.State)
-			//				{
-			//					case Cell.LiveState.Live:
-			//					case Cell.LiveState.Emerging:
-			//						{
-			//							bool find = _survive.Any(val => val == living);
-
-			//							if (find)
-			//								newCells[i, j] = Cell.LiveState.Live;
-			//							else
-			//								newCells[i, j] = Cell.LiveState.Dying;
-			//							break;
-			//						}
-			//					case Cell.LiveState.Dead:
-			//					case Cell.LiveState.Dying:
-			//						{
-			//							bool find = _live.Any(val => val == living);
-			//							if (find)
-			//								newCells[i, j] = Cell.LiveState.Emerging;
-			//							else
-			//								newCells[i, j] = Cell.LiveState.Dead;
-			//							break;
-			//						}
-			//				}
-			//			}
-			//	}
-
-			//_launch[posX, posY] = true;
-			//bool finish;
-			//do
-			//{
-			//	finish = true;
-			//	for (int i = 0; i < _tasksX; ++i)
-			//		for (int j = 0; j < _tasksY; ++j)
-			//			if (!_launch[i, j])
-			//				finish = false;
-			//} while (!finish);
-
-			//lock (_lists[posX, posY])
-			//	_lists[posX, posY].Clear();
-			List<Drawable> result = new List<Drawable>(width * height);
-
-			for (int x = 0; x < width; ++x)
-				for (int y = 0; y < height; ++y)
-				{
-					Cell cell = _cells[startX + x, startY + y];
-
-					cell.Shape.FillColor = (cell == _selectedCell) ? selectedColors[cell.State] : colors[cell.State];
-					if (_frame % _fps == 0)
-					{
-						if (_running || _oneFrame)
-							cell.State = newCells[x, y];
-						cell.Shape.Position = new Vector2f(_offset.X + (startX + x) * Cell.Width, _offset.Y + (startY + y) * Cell.Height);
-					}
-					//lock (_lists[posX, posY])
-					result.Add(cell.Shape);
-				}
-
-			_launch[posX, posY] = false;
-			return result;
-			//}
 		}
 
 		public static Dictionary<Cell.LiveState, Color> Colors
@@ -343,141 +120,65 @@ namespace GameLife
 			_oneFrame = true;
 		}
 
-		public IEnumerable<Drawable> Draw()
+		public IEnumerable<Drawable> Draw(int offset)
 		{
 			_frame++;
-			int x = _width / _tasksX;
-			int y = _height / _tasksY;
-
-			List<Drawable> result = new List<Drawable>(_width * _height);
-			bool[,] finished = new bool[_tasksX,_tasksY];
-
-			for (int i = 0; i < _tasksX; ++i)
-				for (int j = 0; j < _tasksY; ++j)
-				{
-					_launch[i, j] = false;
-					finished[i, j] = false;
-
-					RectangleShape rect = new RectangleShape()
-						{
-							Position = new Vector2f(i * x, j * y),
-							Size = new Vector2f(x, y),
-							Origin = new Vector2f(i, j)
-						};
-
-					var task = new Task<Cell.LiveState[,]>(FirstCompute, rect);
-					int i1 = i;
-					int j1 = j;
-					task.ContinueWith(r =>
-						{
-							_launch[i1, j1] = true;
-							bool p;
-							do
-							{
-								p = true;
-								for (int u = 0; u < _tasksX; ++u)
-									for (int v = 0; v < _tasksY; ++v)
-										if (!_launch[u, v])
-											p = false;
-							} while (!p);
-							return new {Cells = r.Result, X = i1, Y = j1, Width = x, Height = y};
-						}, TaskContinuationOptions.ExecuteSynchronously)
-						.ContinueWith<List<Drawable>>(AfterCompute).ContinueWith(r =>
-						{
-							lock (result)
-								result.AddRange(r.Result);
-							//foreach (Drawable drawable in r.Result)
-							//	result.Add(drawable);
-							finished[i1, j1] = true;
-						}, TaskContinuationOptions.ExecuteSynchronously);
-					task.Start();
-				} //Cell.LiveState[,] newCells = null;
-
-
-			if (_frame % _fps == 0)
+			Cell.LiveState[,] newCells = null;
+			if(_frame%_fps==0)
 				if (_running || _oneFrame)
 				{
-					//newCells = new Cell.LiveState[_width,_height];
+					newCells = new Cell.LiveState[_width,_height];
 
-					//for (int i = 0; i < _width; ++i)
-					//	for (int j = 0; j < _height; ++j)
-					//	{
-					//		Cell cell = _cells[i, j];
-					//		int living = Arround(cell).Count();
-					//		switch (cell.State)
-					//		{
-					//			case Cell.LiveState.Live:
-					//			case Cell.LiveState.Emerging:
-					//				{
-					//					bool find = _survive.Any(val => val == living);
+					for (int i = 0; i < _width; ++i)
+						for (int j = 0; j < _height; ++j)
+						{
+							Cell cell = _cells[i, j];
+							int living = Arround(cell).Count();
+							switch (cell.State)
+							{
+								case Cell.LiveState.Live:
+								case Cell.LiveState.Emerging:
+									{
+										bool find = _survive.Any(val => val == living);
 
-					//					if (find)
-					//						newCells[i, j] = Cell.LiveState.Live;
-					//					else
-					//						newCells[i, j] = Cell.LiveState.Dying;
-					//					break;
-					//				}
-					//			case Cell.LiveState.Dead:
-					//			case Cell.LiveState.Dying:
-					//				{
-					//					bool find = _live.Any(val => val == living);
-					//					if (find)
-					//						newCells[i, j] = Cell.LiveState.Emerging;
-					//					else
-					//						newCells[i, j] = Cell.LiveState.Dead;
-					//					break;
-					//				}
-					//		}
-					//	}
+										if (find)
+											newCells[i, j] = Cell.LiveState.Live;
+										else
+											newCells[i, j] = Cell.LiveState.Dying;
+										break;
+									}
+								case Cell.LiveState.Dead:
+								case Cell.LiveState.Dying:
+									{
+										bool find = _live.Any(val => val == living);
+										if (find)
+											newCells[i, j] = Cell.LiveState.Emerging;
+										else
+											newCells[i, j] = Cell.LiveState.Dead;
+										break;
+									}
+							}
+						}
 					_generation++;
 				}
 
-			//for (int x = 0; x < _width; ++x)
-			//	for (int y = 0; y < _height; ++y)
-			//	{
-			//		Cell cell = _cells[x, y];
-
-			//		cell.Shape.FillColor = (cell == _selectedCell) ? selectedColors[cell.State] : colors[cell.State];
-			//		if (_frame % _fps == 0)
-			//		{
-			//			_frame = 0;
-			//			if (_running || _oneFrame)
-			//				cell.State = newCells[x, y];
-			//			cell.Shape.Position = new Vector2f(_offset.X + x * Cell.Width, _offset.Y + y * Cell.Height);
-			//		}
-			//		yield return cell.Shape;
-			//	}
-			//for (int i = 0; i < _tasksX; ++i)
-			//	for (int j = 0; j < _tasksY; ++j)
-			//		_tasks[i, j].Start();
-
-			bool finish;
-			do
-			{
-				finish = true;
-				for (int i = 0; i < _tasksX; ++i)
-					for (int j = 0; j < _tasksY; ++j)
-						if (!finished[i, j])
-							finish = false;
-				//	{
-				//		if (!_tasks[i, j].IsCompleted)
-				//			finish = false;
-				//		else if(!_launch[i, j])
-				//		{
-				//			foreach (Drawable drawable in _tasks[i, j].Result)
-				//				result.Add(drawable);
-				//			_launch[i, j] = true;
-				//		}
-				//	}
-			} while (!finish);
-
+			for (int x = 0; x < _width; ++x)
+				for (int y = 0; y < _height; ++y)
+				{
+					Cell cell = _cells[x, y];
+					
+					cell.Shape.FillColor = (cell == _selectedCell) ? selectedColors[cell.State] : colors[cell.State];
+					if (_frame % _fps == 0)
+					{
+						_frame = 0;
+						if (_running || _oneFrame)
+							cell.State = newCells[x, y];
+						cell.Shape.Position = new Vector2f(offset + x * Cell.Width, y * Cell.Height);
+					}
+					yield return cell.Shape;
+				}
 			if (_oneFrame)
 				_oneFrame = false;
-			//for (int i = 0; i < _tasksX; ++i)
-			//	for (int j = 0; j < _tasksY; ++j)
-			//		lock (_lists[i, j])
-			//			result.AddRange(_lists[i, j]);
-			return result;
 		}
 
 		private static IEnumerable<Cell> Arround(Cell cell)
@@ -512,7 +213,6 @@ namespace GameLife
 		{
 			States = true;
 		}
-
 		public static void Quadricolor()
 		{
 			States = false;

@@ -20,8 +20,8 @@ namespace GameLife
 			Font = new Font(Config.Configuration.Font);
 			PauseColor = Config.Configuration.PauseColor;
 
-			Offset = new Vector2i(0, 50);
-			GameLife = new GameLife(100, 2, 2, Offset);
+			Offset = new Vector2i(100, 0);
+			GameLife = new GameLife(100);
 
 			Window =
 				new RenderWindow(
@@ -105,16 +105,13 @@ namespace GameLife
 				Window.DispatchEvents();
 				Window.Clear(PauseColor[GameLife.Running]);
 
-				Window.Draw(
-					new Text(
-						"Gen:" + GameLife.Generation + "\tCurent Cell: " +
-						(GameLife.SelectedCell == null ? "-1, -1 ()" : ((GameLife.SelectedCell.X + 1) + ", " + (GameLife.SelectedCell.Y + 1) + " ("+GameLife.SelectedCell.State.ToString()+")")), Font)
-						{
-							Position = new Vector2f(15, 3),
-							Color = RegularGrey
-						});
+				Window.Draw(new Text("Gen:\n" + GameLife.Generation, Font)
+					{
+						Color = RegularGrey,
+						Style = Text.Styles.Underlined
+					});
 
-				foreach (RectangleShape shape in GameLife.Draw())
+				foreach (RectangleShape shape in GameLife.Draw(Offset.X))
 					Window.Draw(shape);
 
 				Window.Display();
