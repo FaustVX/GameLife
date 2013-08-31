@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Diagnostics;
-using CSharpHelper;
+﻿using CSharpHelper;
 using SFML.Graphics;
 using SFML.Window;
 

@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using CSharpHelper;
 using SFML.Graphics;
 using SFML.Window;
@@ -8,37 +10,37 @@ namespace GameLife
 {
 	public class GameLife : Grid<LifeCell>
 	{
+		private static readonly Config Config;
 		private static readonly Dictionary<LifeCell.LiveState, Color> colors, selectedColors;
-		private readonly int _fps;
+		private readonly uint _fps;
 		private bool _running, _oneFrame;
 		private static bool _2States;
 		private int _generation;
 		private LifeCell _selectedCell;
 		private readonly Vector2i _offset;
-		private int _frame;
+		private ulong _frame;
 		private readonly int[] _live, _survive;
 
 		static GameLife()
 		{
-			Config config = Config.Configuration;
+			Config = Config.Configuration;
 
-			colors = config.Colors;
-			selectedColors = config.SelectedColors;
+			colors = Config.Colors;
+			selectedColors = Config.SelectedColors;
 		}
 
 		public GameLife(int fps, Vector2i offset)
-			: base(Config.Configuration.GridWidth, Config.Configuration.GridHeight, (i, j, cells) => new LifeCell(i, j, cells))
+			: base(Config.GridWidth, Config.GridHeight, (i, j, cells) => new LifeCell(i, j, cells))
 		{
 			_offset = offset;
-			Config config = Config.Configuration;
 
 			_running = false;
 			_oneFrame = false;
 			_generation = 1;
-			_fps = fps / config.FPS;
-			_live = config.Live;
-			_survive = config.Survive;
-			_frame = -1;
+			_fps = (uint)(fps / Config.FPS);
+			_live = Config.Live;
+			_survive = Config.Survive;
+			_frame = 0;
 		}
 
 		public static Dictionary<LifeCell.LiveState, Color> Colors
@@ -84,27 +86,30 @@ namespace GameLife
 
 		public int FPS
 		{
-			get { return _fps; }
+			get { return (int)_fps; }
 		}
 
 		public void OneFrame()
 		{
 			if (!_running)
-				_frame = -1;
+				_frame = 01;
 			_oneFrame = true;
 		}
 
 		public IEnumerable<Drawable> Draw()
 		{
 			_frame++;
+			bool frame = _frame % _fps == 0;
 			LifeCell.LiveState[,] newCells = null;
-			if(_frame%_fps==0)
+			if (frame)
 				if (_running || _oneFrame)
 				{
 					newCells = new LifeCell.LiveState[Width,Height];
 
-					for (int i = 0; i < Width; ++i)
-						for (int j = 0; j < Height; ++j)
+
+					//for (int i = 0; i < Width; ++i)
+					//	for (int j = 0; j < Height; ++j)
+					Parallel.For(0, Width, i => Parallel.For(0, Height, j =>
 						{
 							LifeCell cell = this[i, j];
 							int living = cell.Neighbor();
@@ -132,27 +137,29 @@ namespace GameLife
 										break;
 									}
 							}
-						}
+						}));
 					_generation++;
 				}
-
+			//List<Drawable> result = new List<Drawable>(Width * Height);
 			for (int x = 0; x < Width; ++x)
 				for (int y = 0; y < Height; ++y)
+			//Parallel.For(0, Width, x => Parallel.For(0, Height, y =>
 				{
-					LifeCell cell = this[x, y];
-					
+					LifeCell cell = Cells[x, y];
+
 					cell.Shape.FillColor = (cell == _selectedCell) ? selectedColors[cell.State] : colors[cell.State];
-					if (_frame % _fps == 0)
+					if (frame)
 					{
-						_frame = 0;
+						//_frame = 0;
 						if (_running || _oneFrame)
 							cell.State = newCells[x, y];
 						cell.Shape.Position = new Vector2f(_offset.X + x * LifeCell.Width, _offset.Y + y * LifeCell.Height);
 					}
 					yield return cell.Shape;
-				}
+				} //));
 			if (_oneFrame)
 				_oneFrame = false;
+			//return result;
 		}
 
 		public void Pause()
@@ -164,6 +171,7 @@ namespace GameLife
 		{
 			States = true;
 		}
+
 		public static void Quadricolor()
 		{
 			States = false;

@@ -25,7 +25,8 @@ namespace GameLife
 
 			Window =
 				new RenderWindow(
-					new VideoMode((uint)(GameLife.Width * LifeCell.Width + Offset.X), (uint)(GameLife.Height * LifeCell.Height + Offset.Y), 32),
+					new VideoMode((uint)(GameLife.Width * LifeCell.Width + Offset.X),
+								(uint)(GameLife.Height * LifeCell.Height + Offset.Y), 32),
 					"Game of life")
 					{
 						Position = new Vector2i(0, 10)
@@ -39,7 +40,7 @@ namespace GameLife
 			Window.MouseMoved += Window_MouseMoved;
 		}
 
-		static void Window_KeyReleased(object sender, KeyEventArgs e)
+		private static void Window_KeyReleased(object sender, KeyEventArgs e)
 		{
 			switch (e.Code)
 			{
@@ -116,14 +117,6 @@ namespace GameLife
 							Position = new Vector2f(15, 3),
 							Color = RegularGrey
 						});
-
-
-
-				//Window.Draw(new Text("Gen:\n" + GameLife.Generation, Font)
-				//	{
-				//		Color = RegularGrey,
-				//		Style = Text.Styles.Underlined
-				//	});
 
 				foreach (RectangleShape shape in GameLife.Draw())
 					Window.Draw(shape);
