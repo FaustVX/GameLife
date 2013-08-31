@@ -20,15 +20,15 @@ namespace GameLife
 			Font = new Font(Config.Configuration.Font);
 			PauseColor = Config.Configuration.PauseColor;
 
-			Offset = new Vector2i(100, 0);
-			GameLife = new GameLife(100);
+			Offset = new Vector2i(0, 50);
+			GameLife = new GameLife(100, Offset);
 
 			Window =
 				new RenderWindow(
-					new VideoMode((uint)(GameLife.Width * Cell.Width + Offset.X), (uint)(GameLife.Height * Cell.Height + Offset.Y), 32),
+					new VideoMode((uint)(GameLife.Width * LifeCell.Width + Offset.X), (uint)(GameLife.Height * LifeCell.Height + Offset.Y), 32),
 					"Game of life")
 					{
-						Position = new Vector2i(10, 10)
+						Position = new Vector2i(0, 10)
 					};
 
 			Window.SetFramerateLimit(100);
@@ -66,14 +66,14 @@ namespace GameLife
 		{
 			e.X -= Offset.X;
 			e.Y -= Offset.Y;
-			if (e.X < 0 || e.Y < 0 || e.X >= GameLife.Width * Cell.Width || e.Y >= GameLife.Height * Cell.Height)
+			if (e.X < 0 || e.Y < 0 || e.X >= GameLife.Width * LifeCell.Width || e.Y >= GameLife.Height * LifeCell.Height)
 			{
 				GameLife.SelectedCell = null;
 				return;
 			}
 
-			int x = (int)(e.X / Cell.Width);
-			int y = (int)(e.Y / Cell.Height);
+			int x = (int)(e.X / LifeCell.Width);
+			int y = (int)(e.Y / LifeCell.Height);
 
 			GameLife.SelectedCell = GameLife[x, y];
 		}
@@ -105,13 +105,27 @@ namespace GameLife
 				Window.DispatchEvents();
 				Window.Clear(PauseColor[GameLife.Running]);
 
-				Window.Draw(new Text("Gen:\n" + GameLife.Generation, Font)
-					{
-						Color = RegularGrey,
-						Style = Text.Styles.Underlined
-					});
+				Window.Draw(
+					new Text(
+						"Gen:" + GameLife.Generation + "\tCurent Cell: " +
+						(GameLife.SelectedCell == null
+							? "-1, -1 ()"
+							: ((GameLife.SelectedCell.X + 1) + ", " + (GameLife.SelectedCell.Y + 1) + " (" + GameLife.SelectedCell.State +
+								")")), Font)
+						{
+							Position = new Vector2f(15, 3),
+							Color = RegularGrey
+						});
 
-				foreach (RectangleShape shape in GameLife.Draw(Offset.X))
+
+
+				//Window.Draw(new Text("Gen:\n" + GameLife.Generation, Font)
+				//	{
+				//		Color = RegularGrey,
+				//		Style = Text.Styles.Underlined
+				//	});
+
+				foreach (RectangleShape shape in GameLife.Draw())
 					Window.Draw(shape);
 
 				Window.Display();

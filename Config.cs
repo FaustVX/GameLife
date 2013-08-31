@@ -14,25 +14,25 @@ namespace GameLife
 		private readonly int[] _live, _survive;
 		private readonly int _cellWidth, _cellHeight, _gridWidth, _gridHeight;
 		private readonly int _fps;
-		private readonly Dictionary<Cell.LiveState, Color> _colors, _selectedColors;
+		private readonly Dictionary<LifeCell.LiveState, Color> _colors, _selectedColors;
 		private readonly Dictionary<bool, Color> _pauseColor;
 		private readonly string _font;
 
 		static Config()
 		{
-			var c = new Dictionary<Cell.LiveState, Color>()
+			var c = new Dictionary<LifeCell.LiveState, Color>()
 				{
-					{Cell.LiveState.Emerging, Color.Green},
-					{Cell.LiveState.Live, Color.Blue},
-					{Cell.LiveState.Dying, new Color(255, 127, 0)},
-					{Cell.LiveState.Dead, new Color(200, 200, 200)}
+					{LifeCell.LiveState.Emerging, Color.Green},
+					{LifeCell.LiveState.Live, Color.Blue},
+					{LifeCell.LiveState.Dying, new Color(255, 127, 0)},
+					{LifeCell.LiveState.Dead, new Color(200, 200, 200)}
 				};
-			var c1 = new Dictionary<Cell.LiveState, Color>()
+			var c1 = new Dictionary<LifeCell.LiveState, Color>()
 				{
-					{Cell.LiveState.Emerging, Color.Cyan},
-					{Cell.LiveState.Live, Color.White},
-					{Cell.LiveState.Dying, Color.Red},
-					{Cell.LiveState.Dead, Color.Black}
+					{LifeCell.LiveState.Emerging, Color.Cyan},
+					{LifeCell.LiveState.Live, Color.White},
+					{LifeCell.LiveState.Dying, Color.Red},
+					{LifeCell.LiveState.Dead, Color.Black}
 				};
 			var c2 = new Dictionary<bool, Color>()
 				{
@@ -44,7 +44,7 @@ namespace GameLife
 		}
 
 		public Config(int[] live, int[] survive, int cellWidth, int cellHeight, int gridWidth, int gridHeight, int fps,
-					Dictionary<Cell.LiveState, Color> colors, Dictionary<Cell.LiveState, Color> selectedColors,
+					Dictionary<LifeCell.LiveState, Color> colors, Dictionary<LifeCell.LiveState, Color> selectedColors,
 					Dictionary<bool, Color> pauseColor, string font, string filepath)
 			: this(live, survive, cellWidth, cellHeight, gridWidth, gridHeight, fps, colors, selectedColors, pauseColor, font)
 		{
@@ -60,7 +60,7 @@ namespace GameLife
 				serializer.Serialize(writer, this);
 		}
 
-		public Config(int[] live, int[] survive, int cellWidth, int cellHeight, int gridWidth, int gridHeight, int fps, Dictionary<Cell.LiveState, Color> colors, Dictionary<Cell.LiveState, Color> selectedColors, Dictionary<bool, Color> pauseColor, string font)
+		public Config(int[] live, int[] survive, int cellWidth, int cellHeight, int gridWidth, int gridHeight, int fps, Dictionary<LifeCell.LiveState, Color> colors, Dictionary<LifeCell.LiveState, Color> selectedColors, Dictionary<bool, Color> pauseColor, string font)
 		{
 			_live = live;
 			_survive = survive;
@@ -110,12 +110,12 @@ namespace GameLife
 			get { return _fps; }
 		}
 
-		public Dictionary<Cell.LiveState, Color> Colors
+		public Dictionary<LifeCell.LiveState, Color> Colors
 		{
 			get { return _colors; }
 		}
 
-		public Dictionary<Cell.LiveState, Color> SelectedColors
+		public Dictionary<LifeCell.LiveState, Color> SelectedColors
 		{
 			get { return _selectedColors; }
 		}
@@ -156,9 +156,9 @@ namespace GameLife
 				r = parser.SelectToken("FPS", false);
 				int fps = r == null ? Base.FPS : r.ToObject<int>();
 				r = parser.SelectToken("Colors", false);
-				var c = r == null ? Base.Colors : r.ToObject<Dictionary<Cell.LiveState, Color>>();
+				var c = r == null ? Base.Colors : r.ToObject<Dictionary<LifeCell.LiveState, Color>>();
 				r = parser.SelectToken("SelectedColors", false);
-				var c1 = r == null ? Base.SelectedColors : r.ToObject<Dictionary<Cell.LiveState, Color>>();
+				var c1 = r == null ? Base.SelectedColors : r.ToObject<Dictionary<LifeCell.LiveState, Color>>();
 				r = parser.SelectToken("PauseColor", false);
 				var c2 = r == null ? Base.PauseColor : r.ToObject<Dictionary<bool, Color>>();
 				r = parser.SelectToken("Font", false);

@@ -1,20 +1,20 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using CSharpHelper;
 using SFML.Graphics;
 using SFML.Window;
 
 namespace GameLife
 {
-	public class GameLife
+	public class GameLife : Grid<LifeCell>
 	{
-		private static readonly Dictionary<Cell.LiveState, Color> colors, selectedColors;
-		private readonly int _width, _height;
+		private static readonly Dictionary<LifeCell.LiveState, Color> colors, selectedColors;
 		private readonly int _fps;
-		private readonly Cell[,] _cells;
 		private bool _running, _oneFrame;
 		private static bool _2States;
 		private int _generation;
-		private Cell _selectedCell;
+		private LifeCell _selectedCell;
+		private readonly Vector2i _offset;
 		private int _frame;
 		private readonly int[] _live, _survive;
 
@@ -26,50 +26,24 @@ namespace GameLife
 			selectedColors = config.SelectedColors;
 		}
 
-		public GameLife(int fps)
+		public GameLife(int fps, Vector2i offset)
+			: base(Config.Configuration.GridWidth, Config.Configuration.GridHeight, (i, j, cells) => new LifeCell(i, j, cells))
 		{
+			_offset = offset;
 			Config config = Config.Configuration;
 
 			_running = false;
 			_oneFrame = false;
 			_generation = 1;
-			_width = config.GridWidth;
-			_height = config.GridHeight;
 			_fps = fps / config.FPS;
 			_live = config.Live;
 			_survive = config.Survive;
 			_frame = -1;
-
-			_cells = new Cell[Width,Height];
-
-			for (int i = 0; i < Width; i++)
-				for (int j = 0; j < Height; j++)
-					_cells[i, j] = new Cell(i, j, this);
 		}
 
-		public static Dictionary<Cell.LiveState, Color> Colors
+		public static Dictionary<LifeCell.LiveState, Color> Colors
 		{
 			get { return colors; }
-		}
-
-		public Cell this[int x, int y]
-		{
-			get
-			{
-				if (x < 0 || y < 0 || x >= _width || y >= _height)
-					return null;
-				return _cells[x, y];
-			}
-		}
-
-		public int Width
-		{
-			get { return _width; }
-		}
-
-		public int Height
-		{
-			get { return _height; }
 		}
 
 		public bool Running
@@ -83,7 +57,7 @@ namespace GameLife
 			get { return _generation; }
 		}
 
-		public Cell SelectedCell
+		public LifeCell SelectedCell
 		{
 			get { return _selectedCell; }
 			set { _selectedCell = value; }
@@ -97,13 +71,13 @@ namespace GameLife
 				_2States = value;
 				if (_2States)
 				{
-					colors[Cell.LiveState.Emerging] = colors[Cell.LiveState.Live];
-					colors[Cell.LiveState.Dying] = colors[Cell.LiveState.Dead];
+					colors[LifeCell.LiveState.Emerging] = colors[LifeCell.LiveState.Live];
+					colors[LifeCell.LiveState.Dying] = colors[LifeCell.LiveState.Dead];
 				}
 				else
 				{
-					colors[Cell.LiveState.Emerging] = Color.Green;
-					colors[Cell.LiveState.Dying] = new Color(255, 127, 0);
+					colors[LifeCell.LiveState.Emerging] = Color.Green;
+					colors[LifeCell.LiveState.Dying] = new Color(255, 127, 0);
 				}
 			}
 		}
@@ -120,41 +94,41 @@ namespace GameLife
 			_oneFrame = true;
 		}
 
-		public IEnumerable<Drawable> Draw(int offset)
+		public IEnumerable<Drawable> Draw()
 		{
 			_frame++;
-			Cell.LiveState[,] newCells = null;
+			LifeCell.LiveState[,] newCells = null;
 			if(_frame%_fps==0)
 				if (_running || _oneFrame)
 				{
-					newCells = new Cell.LiveState[_width,_height];
+					newCells = new LifeCell.LiveState[Width,Height];
 
-					for (int i = 0; i < _width; ++i)
-						for (int j = 0; j < _height; ++j)
+					for (int i = 0; i < Width; ++i)
+						for (int j = 0; j < Height; ++j)
 						{
-							Cell cell = _cells[i, j];
-							int living = Arround(cell).Count();
+							LifeCell cell = this[i, j];
+							int living = cell.Neighbor();
 							switch (cell.State)
 							{
-								case Cell.LiveState.Live:
-								case Cell.LiveState.Emerging:
+								case LifeCell.LiveState.Live:
+								case LifeCell.LiveState.Emerging:
 									{
 										bool find = _survive.Any(val => val == living);
 
 										if (find)
-											newCells[i, j] = Cell.LiveState.Live;
+											newCells[i, j] = LifeCell.LiveState.Live;
 										else
-											newCells[i, j] = Cell.LiveState.Dying;
+											newCells[i, j] = LifeCell.LiveState.Dying;
 										break;
 									}
-								case Cell.LiveState.Dead:
-								case Cell.LiveState.Dying:
+								case LifeCell.LiveState.Dead:
+								case LifeCell.LiveState.Dying:
 									{
 										bool find = _live.Any(val => val == living);
 										if (find)
-											newCells[i, j] = Cell.LiveState.Emerging;
+											newCells[i, j] = LifeCell.LiveState.Emerging;
 										else
-											newCells[i, j] = Cell.LiveState.Dead;
+											newCells[i, j] = LifeCell.LiveState.Dead;
 										break;
 									}
 							}
@@ -162,10 +136,10 @@ namespace GameLife
 					_generation++;
 				}
 
-			for (int x = 0; x < _width; ++x)
-				for (int y = 0; y < _height; ++y)
+			for (int x = 0; x < Width; ++x)
+				for (int y = 0; y < Height; ++y)
 				{
-					Cell cell = _cells[x, y];
+					LifeCell cell = this[x, y];
 					
 					cell.Shape.FillColor = (cell == _selectedCell) ? selectedColors[cell.State] : colors[cell.State];
 					if (_frame % _fps == 0)
@@ -173,35 +147,12 @@ namespace GameLife
 						_frame = 0;
 						if (_running || _oneFrame)
 							cell.State = newCells[x, y];
-						cell.Shape.Position = new Vector2f(offset + x * Cell.Width, y * Cell.Height);
+						cell.Shape.Position = new Vector2f(_offset.X + x * LifeCell.Width, _offset.Y + y * LifeCell.Height);
 					}
 					yield return cell.Shape;
 				}
 			if (_oneFrame)
 				_oneFrame = false;
-		}
-
-		private static IEnumerable<Cell> Arround(Cell cell)
-		{
-			if (cell.Up != null && (cell.Up.State == Cell.LiveState.Emerging || cell.Up.State == Cell.LiveState.Live))
-				yield return cell.Up;
-			if (cell.Down != null && (cell.Down.State == Cell.LiveState.Emerging || cell.Down.State == Cell.LiveState.Live))
-				yield return cell.Down;
-			if (cell.Left != null && (cell.Left.State == Cell.LiveState.Emerging || cell.Left.State == Cell.LiveState.Live))
-				yield return cell.Left;
-			if (cell.Right != null && (cell.Right.State == Cell.LiveState.Emerging || cell.Right.State == Cell.LiveState.Live))
-				yield return cell.Right;
-			if (cell.UpLeft != null && (cell.UpLeft.State == Cell.LiveState.Emerging || cell.UpLeft.State == Cell.LiveState.Live))
-				yield return cell.UpLeft;
-			if (cell.UpRight != null &&
-				(cell.UpRight.State == Cell.LiveState.Emerging || cell.UpRight.State == Cell.LiveState.Live))
-				yield return cell.UpRight;
-			if (cell.DownLeft != null &&
-				(cell.DownLeft.State == Cell.LiveState.Emerging || cell.DownLeft.State == Cell.LiveState.Live))
-				yield return cell.DownLeft;
-			if (cell.DownRight != null &&
-				(cell.DownRight.State == Cell.LiveState.Emerging || cell.DownRight.State == Cell.LiveState.Live))
-				yield return cell.DownRight;
 		}
 
 		public void Pause()
@@ -220,8 +171,8 @@ namespace GameLife
 
 		public void Reset()
 		{
-			foreach (Cell cell in _cells)
-				cell.State = (cell.State != Cell.LiveState.Dead) ? Cell.LiveState.Dying : Cell.LiveState.Dead;
+			foreach (LifeCell cell in Cells)
+				cell.State = (cell.State != LifeCell.LiveState.Dead) ? LifeCell.LiveState.Dying : LifeCell.LiveState.Dead;
 
 			_running = false;
 			_generation = 0;

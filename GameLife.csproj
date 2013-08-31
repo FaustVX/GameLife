@@ -38,10 +38,6 @@
     <Reference Include="Newtonsoft.Json">
       <HintPath>..\..\..\Json.Net\Bin\Net40\Newtonsoft.Json.dll</HintPath>
     </Reference>
-    <Reference Include="sfmlnet-audio-2, Version=2.1.0.0, Culture=neutral, processorArchitecture=x86">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\SFML.Net-2.1-x64\lib\sfmlnet-audio-2.dll</HintPath>
-    </Reference>
     <Reference Include="sfmlnet-graphics-2, Version=2.1.0.0, Culture=neutral, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\SFML.Net-2.1-x64\lib\sfmlnet-graphics-2.dll</HintPath>
@@ -52,14 +48,9 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Cell.cs" />
+    <Compile Include="LifeCell.cs" />
     <Compile Include="Config.cs" />
     <Compile Include="GameLife.cs" />
     <Compile Include="Program.cs" />
@@ -90,6 +81,12 @@
     <None Include="Newtonsoft.Json.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\CSharpHelper\CSharpHelper\CSharpHelper.csproj">
+      <Project>{4603ED6E-4395-4866-BFDD-75363B3801AE}</Project>
+      <Name>CSharpHelper</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
